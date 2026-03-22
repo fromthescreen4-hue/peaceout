@@ -1,19 +1,19 @@
-pe<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamTube</title>
+    <title>Peace Out | Live Streaming</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #0f0f0f;
-            color: white;
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #efeff1;
             margin: 0;
             overflow: hidden;
         }
@@ -22,18 +22,18 @@ pe<!DOCTYPE html>
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(0, 242, 255, 0.3);
         }
 
-        .video-card:hover .watch-later-btn {
-            opacity: 1;
+        .live-glow {
+            box-shadow: 0 0 15px rgba(255, 0, 122, 0.4);
         }
 
         .line-clamp-2 {
@@ -43,169 +43,198 @@ pe<!DOCTYPE html>
             overflow: hidden;
         }
         
-        .active-sidebar-item {
-            background-color: rgba(255, 255, 255, 0.1);
-            font-weight: 700;
+        .nav-item-active {
+            background: linear-gradient(90deg, rgba(0, 242, 255, 0.1) 0%, transparent 100%);
+            border-left: 3px solid #00f2ff;
+            color: #00f2ff;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+        }
+
+        /* Live Chat Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chat-msg {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Hide sidebar on mobile unless toggled */
+        @media (max-width: 640px) {
+            #sidebar.mobile-hidden {
+                transform: translateX(-100%);
+                position: absolute;
+                z-index: 100;
+                height: calc(100% - 64px);
+            }
         }
     </style>
 </head>
 <body>
 
     <!-- HEADER -->
-    <header class="flex items-center justify-between px-4 h-14 fixed top-0 w-full bg-[#0f0f0f] z-50">
-        <div class="flex items-center gap-4">
-            <button id="menuBtn" class="p-2 hover:bg-white/10 rounded-full">
-                <i data-lucide="menu" size="24"></i>
+    <header class="flex items-center justify-between px-4 h-16 fixed top-0 w-full bg-[#0a0a0c]/80 backdrop-blur-md border-b border-white/5 z-50">
+        <div class="flex items-center gap-3 md:gap-6">
+            <button id="menuBtn" class="p-2 hover:bg-white/5 rounded-lg transition-colors">
+                <i data-lucide="layout-grid" size="22" class="text-cyan-400"></i>
             </button>
-            <div class="flex items-center gap-1 cursor-pointer" onclick="showHome()">
-                <div class="bg-red-600 rounded-lg p-1 flex items-center justify-center">
-                    <i data-lucide="play" size="18" fill="white"></i>
+            <div class="flex items-center gap-2 cursor-pointer group" onclick="showHome()">
+                <div class="w-8 h-8 md:w-9 md:h-9 bg-gradient-to-br from-cyan-500 to-fuchsia-600 rounded-lg flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
+                    <i data-lucide="zap" size="18" fill="white" class="text-white"></i>
                 </div>
-                <span class="text-xl font-bold tracking-tighter">StreamTube</span>
+                <span class="text-lg md:text-xl font-black tracking-tight neon-text italic">PEACE OUT</span>
             </div>
         </div>
 
-        <div class="hidden md:flex flex-1 max-w-[720px] items-center gap-4 ml-10">
-            <div class="flex flex-1">
-                <div class="flex flex-1 items-center bg-[#121212] border border-[#303030] rounded-l-full px-4 focus-within:border-blue-500 ml-4">
-                    <input 
-                        id="searchInput"
-                        type="text" 
-                        placeholder="Search" 
-                        class="bg-transparent w-full h-10 outline-none text-[16px]"
-                    />
-                </div>
-                <button id="searchBtn" class="bg-[#222222] border border-l-0 border-[#303030] rounded-r-full px-5 hover:bg-[#272727]">
-                    <i data-lucide="search" size="20"></i>
-                </button>
+        <div class="hidden md:flex flex-1 max-w-[600px] items-center gap-2 mx-4 lg:mx-10">
+            <div class="flex flex-1 items-center bg-[#18181b] border border-white/10 rounded-xl px-4 focus-within:border-cyan-500/50 transition-all">
+                <i data-lucide="search" size="18" class="text-gray-500"></i>
+                <input 
+                    id="searchInput"
+                    type="text" 
+                    placeholder="Find a stream..." 
+                    class="bg-transparent w-full h-11 outline-none text-[15px] px-3 font-medium"
+                />
             </div>
-            <button class="p-2.5 bg-[#181818] hover:bg-[#272727] rounded-full">
-                <i data-lucide="mic" size="20"></i>
-            </button>
         </div>
 
         <div class="flex items-center gap-2 md:gap-4">
-            <button class="p-2 hover:bg-white/10 rounded-full hidden sm:block">
-                <i data-lucide="video" size="24"></i>
+            <button class="hidden sm:flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm transition-all">
+                <i data-lucide="radio" size="16"></i> <span class="hidden lg:inline">GO LIVE</span>
             </button>
-            <button class="p-2 hover:bg-white/10 rounded-full relative">
-                <i data-lucide="bell" size="24"></i>
-                <span class="absolute top-1.5 right-1.5 bg-red-600 text-[10px] font-bold px-1 rounded-full">9+</span>
+            <button class="p-2 hover:bg-white/5 rounded-lg relative">
+                <i data-lucide="bell" size="22"></i>
+                <span class="absolute top-2 right-2 w-2 h-2 bg-fuchsia-500 rounded-full"></span>
             </button>
-            <div id="userAvatar" class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-sm ml-2 cursor-pointer">
-                U
+            <div id="userAvatar" class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#18181b] border border-white/10 flex items-center justify-center font-bold text-cyan-400 cursor-pointer hover:border-cyan-500 transition-all">
+                P
             </div>
         </div>
     </header>
 
-    <div class="flex h-screen pt-14 overflow-hidden">
+    <div class="flex h-screen pt-16 overflow-hidden">
         <!-- SIDEBAR -->
-        <aside id="sidebar" class="w-64 hidden sm:flex flex-col bg-[#0f0f0f] transition-all duration-200 overflow-y-auto custom-scrollbar">
-            <div class="p-3 space-y-1">
-                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10 active-sidebar-item" onclick="showHome()">
-                    <i data-lucide="home" size="22"></i>
-                    <span class="text-[14px] sidebar-text">Home</span>
+        <aside id="sidebar" class="w-64 mobile-hidden flex flex-col bg-[#0a0a0c] border-r border-white/5 transition-all duration-300 overflow-y-auto custom-scrollbar shadow-2xl sm:shadow-none">
+            <div class="p-4 space-y-1">
+                <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 sidebar-text">Navigation</p>
+                <button class="w-full flex items-center gap-4 px-3 py-3 rounded-lg nav-item-active group" onclick="showHome()">
+                    <i data-lucide="home" size="20"></i>
+                    <span class="text-[14px] font-semibold sidebar-text">Discover</span>
                 </button>
-                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10">
-                    <i data-lucide="compass" size="22"></i>
-                    <span class="text-[14px] sidebar-text">Shorts</span>
+                <button class="w-full flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all">
+                    <i data-lucide="flame" size="20"></i>
+                    <span class="text-[14px] font-semibold sidebar-text">Trending</span>
                 </button>
-                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10">
-                    <i data-lucide="play-square" size="22"></i>
-                    <span class="text-[14px] sidebar-text">Subscriptions</span>
+                <button class="w-full flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all">
+                    <i data-lucide="users" size="20"></i>
+                    <span class="text-[14px] font-semibold sidebar-text">Following</span>
                 </button>
             </div>
-            <hr class="border-white/10 my-2 mx-3">
-            <div class="p-3 space-y-1">
-                <h3 class="px-3 py-2 text-[16px] font-bold sidebar-text">You <i data-lucide="chevron-right" size="16" class="inline opacity-60"></i></h3>
-                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10">
-                    <i data-lucide="history" size="22"></i>
-                    <span class="text-[14px] sidebar-text">History</span>
-                </button>
-                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10">
-                    <i data-lucide="clock" size="22"></i>
-                    <div class="flex flex-1 justify-between items-center sidebar-text">
-                        <span class="text-[14px]">Watch Later</span>
-                        <span id="watchLaterCount" class="text-[12px] bg-red-600/20 text-red-500 px-1.5 rounded hidden">0</span>
-                    </div>
-                </button>
-                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10">
-                    <i data-lucide="thumbs-up" size="22"></i>
-                    <span class="text-[14px] sidebar-text">Liked videos</span>
-                </button>
+
+            <div class="p-4 mt-2">
+                <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-4 sidebar-text">Recommended</p>
+                <div id="recommendedSidebar" class="space-y-4">
+                    <!-- Streamers will be injected here -->
+                </div>
             </div>
         </aside>
 
         <!-- MAIN CONTENT -->
-        <main id="mainContent" class="flex-1 bg-[#0f0f0f] overflow-y-auto custom-scrollbar">
-            <!-- Grid View -->
+        <main id="mainContent" class="flex-1 bg-[#050505] overflow-y-auto custom-scrollbar">
+            <!-- Discover View -->
             <div id="gridView">
-                <div id="categoryContainer" class="sticky top-0 bg-[#0f0f0f] z-40 px-4 py-3 flex gap-3 overflow-x-auto no-scrollbar">
+                <div id="categoryContainer" class="sticky top-0 bg-[#050505]/95 backdrop-blur-md z-40 px-4 md:px-6 py-4 flex gap-2 md:gap-3 overflow-x-auto no-scrollbar border-b border-white/5">
                     <!-- Categories will be injected here -->
                 </div>
-                <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 px-4 py-4 pb-20">
-                    <!-- Videos will be injected here -->
+                
+                <div class="px-4 md:px-6 py-6">
+                    <h2 class="text-xl md:text-2xl font-black mb-6 flex items-center gap-3">
+                        <span class="w-2 h-6 md:h-8 bg-fuchsia-600 rounded-full"></span>
+                        LIVE NOW
+                    </h2>
+                    <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 pb-24">
+                        <!-- Videos will be injected here -->
+                    </div>
                 </div>
             </div>
 
-            <!-- Player View -->
-            <div id="playerView" class="hidden flex flex-col lg:flex-row gap-6 p-4 md:p-6">
-                <div class="flex-1 max-w-[1280px]">
-                    <div id="mainVideoPlayer" class="aspect-video w-full bg-black rounded-xl overflow-hidden shadow-2xl relative group">
-                        <!-- Video Placeholder -->
-                        <img id="playerThumbnail" src="" class="w-full h-full object-cover blur-[2px] opacity-40">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
-                                <i data-lucide="play" size="32" fill="white" class="ml-1"></i>
-                            </div>
+            <!-- Streaming Player View -->
+            <div id="playerView" class="hidden h-full flex flex-col xl:flex-row overflow-hidden">
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-6 bg-[#050505]">
+                    <!-- Main Stream -->
+                    <div class="aspect-video w-full bg-black rounded-xl md:rounded-2xl overflow-hidden shadow-2xl relative group border border-white/10">
+                        <img id="playerThumbnail" src="" class="w-full h-full object-cover">
+                        <div class="absolute top-3 left-3 md:top-4 md:left-4 bg-red-600 px-2 md:px-3 py-1 rounded-md text-[10px] md:text-[12px] font-black tracking-tighter flex items-center gap-1 md:gap-2">
+                            <span class="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full animate-pulse"></span> LIVE
+                        </div>
+                        <div class="absolute top-3 right-3 md:top-4 md:right-4 bg-black/60 backdrop-blur-md px-2 md:px-3 py-1 rounded-md text-[10px] md:text-[12px] font-bold">
+                            <i data-lucide="eye" size="14" class="inline mr-1"></i> <span id="playerViewers">0</span>
                         </div>
                     </div>
-                    <h1 id="playerTitle" class="text-xl md:text-2xl font-bold mt-4 line-clamp-2"></h1>
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4">
-                        <div class="flex items-center gap-3">
-                            <img id="playerAvatar" src="" class="w-10 h-10 rounded-full">
-                            <div class="flex flex-col">
-                                <div class="flex items-center gap-1 font-bold text-[16px]">
-                                    <span id="playerChannel"></span>
-                                    <i data-lucide="check-circle-2" size="14" fill="#aaaaaa" class="text-black"></i>
+
+                    <!-- Stream Details -->
+                    <div class="mt-4 md:mt-6 flex flex-col md:flex-row gap-4 md:gap-6">
+                        <div class="flex-1">
+                            <h1 id="playerTitle" class="text-lg md:text-2xl font-black leading-tight"></h1>
+                            <div class="flex items-center gap-3 md:gap-4 mt-4 md:mt-6 p-3 md:p-4 bg-white/5 rounded-xl md:rounded-2xl border border-white/5">
+                                <img id="playerAvatar" src="" class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl ring-2 ring-cyan-500/30">
+                                <div class="flex-1 overflow-hidden">
+                                    <div class="flex items-center gap-2">
+                                        <span id="playerChannel" class="font-bold text-base md:text-lg truncate"></span>
+                                        <i data-lucide="check-circle-2" size="16" class="text-cyan-400 shrink-0"></i>
+                                    </div>
+                                    <div class="flex flex-wrap gap-2 md:gap-4 mt-1">
+                                        <span class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Memes & IRL</span>
+                                        <span class="text-fuchsia-400 text-[10px] font-bold uppercase tracking-widest">English</span>
+                                    </div>
                                 </div>
-                                <span class="text-[#aaaaaa] text-xs">1.24M subscribers</span>
+                                <button class="bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-lg md:rounded-xl text-xs md:text-sm font-bold transition-all shadow-lg shadow-fuchsia-600/20 shrink-0">
+                                    FOLLOW
+                                </button>
                             </div>
-                            <button class="bg-white text-black px-4 py-2 rounded-full font-bold text-sm ml-4 hover:bg-[#e5e5e5]">Subscribe</button>
                         </div>
-                        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
-                            <div class="flex items-center bg-[#272727] rounded-full">
-                                <button class="flex items-center gap-2 px-4 py-2 hover:bg-[#3f3f3f] border-r border-white/10"><i data-lucide="thumbs-up" size="18"></i> 12K</button>
-                                <button class="px-4 py-2 hover:bg-[#3f3f3f] rounded-r-full"><i data-lucide="thumbs-up" size="18" style="transform: rotate(180deg)"></i></button>
-                            </div>
-                            <button class="flex items-center gap-2 px-4 py-2 bg-[#272727] hover:bg-[#3f3f3f] rounded-full"><i data-lucide="share-2" size="18"></i> Share</button>
-                            <button id="playerSaveBtn" class="flex items-center gap-2 px-4 py-2 bg-[#272727] hover:bg-[#3f3f3f] rounded-full"><i data-lucide="clock" size="18"></i> Save</button>
-                        </div>
-                    </div>
-                    <div class="bg-[#272727] rounded-xl p-3 mt-4 text-[14px]">
-                        <p class="font-bold">124,567 views • Oct 24, 2024</p>
-                        <p class="mt-1 text-white/90">Deep dive into building high-fidelity clones with HTML and Tailwind CSS...</p>
                     </div>
                 </div>
-                <!-- Recommendations -->
-                <div id="recommendations" class="w-full lg:w-[400px] flex flex-col gap-3"></div>
+
+                <!-- LIVE CHAT SIDEBAR -->
+                <div class="w-full xl:w-[360px] 2xl:w-[400px] h-[400px] xl:h-full bg-[#0a0a0c] border-l border-white/5 flex flex-col shrink-0">
+                    <div class="p-3 md:p-4 border-b border-white/5 flex items-center justify-between">
+                        <span class="font-black text-xs md:text-sm tracking-widest uppercase text-gray-400">Live Chat</span>
+                        <div class="flex items-center gap-2">
+                             <i data-lucide="users" size="16" class="text-gray-500"></i>
+                             <i data-lucide="settings-2" size="16" class="text-gray-500 cursor-pointer"></i>
+                        </div>
+                    </div>
+                    <div id="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar text-sm">
+                        <!-- Mock chat messages -->
+                    </div>
+                    <div class="p-3 md:p-4 bg-[#0a0a0c] border-t border-white/5">
+                        <div class="relative">
+                            <input type="text" placeholder="Send a message" class="w-full bg-[#18181b] border border-white/10 rounded-xl py-2.5 md:py-3 px-4 pr-12 text-sm focus:border-cyan-500/50 outline-none">
+                            <button class="absolute right-3 top-2.5 md:top-3 text-cyan-400"><i data-lucide="send" size="18"></i></button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
     <!-- MOBILE NAV -->
-    <nav class="sm:hidden fixed bottom-0 w-full h-14 bg-[#0f0f0f] border-t border-white/10 flex items-center justify-around z-50">
-        <button class="flex flex-col items-center gap-1 text-[10px]" onclick="showHome()">
-            <i data-lucide="home" size="22"></i> <span>Home</span>
+    <nav class="sm:hidden fixed bottom-0 w-full h-16 bg-[#0a0a0c] border-t border-white/5 flex items-center justify-around z-50 px-2">
+        <button class="flex flex-col items-center gap-1 text-[10px] text-cyan-400" onclick="showHome()">
+            <i data-lucide="compass" size="22"></i> <span class="font-bold">Discover</span>
         </button>
-        <button class="flex flex-col items-center gap-1 text-[10px]">
-            <i data-lucide="compass" size="22"></i> <span>Shorts</span>
+        <button class="flex flex-col items-center gap-1 text-[10px] text-gray-500">
+            <i data-lucide="heart" size="22"></i> <span>Following</span>
         </button>
-        <button class="flex flex-col items-center gap-1 text-[10px]">
-            <i data-lucide="play-square" size="22"></i> <span>Subs</span>
+        <button class="flex flex-col items-center gap-1 text-[10px] text-gray-500" id="mobileSearchBtn">
+            <i data-lucide="search" size="22"></i> <span>Search</span>
         </button>
-        <button class="flex flex-col items-center gap-1 text-[10px]">
-            <i data-lucide="user" size="22"></i> <span>You</span>
+        <button class="flex flex-col items-center gap-1 text-[10px] text-gray-500">
+            <i data-lucide="user" size="22"></i> <span>Profile</span>
         </button>
     </nav>
 
@@ -215,78 +244,72 @@ pe<!DOCTYPE html>
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Setup
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'streamtube-html-v1';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'peace-out-v1';
 
-        // State
         let currentUser = null;
-        let watchLaterList = [];
         let activeCategory = "All";
         let currentSearch = "";
 
-        const VIDEOS = [
-            { id: '1', title: "Building a Modern YouTube Clone with React and Tailwind", channel: "CodeMaster", views: "1.2M views", time: "2 days ago", duration: "12:45", thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=1" },
-            { id: '2', title: "Lo-fi Hip Hop Radio - Beats to Study/Relax to", channel: "Lofi Girl", views: "45K watching", time: "LIVE", duration: "LIVE", thumbnail: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=2" },
-            { id: '3', title: "Top 10 Desks Setups for Productivity in 2024", channel: "TechSpace", views: "850K views", time: "1 week ago", duration: "10:20", thumbnail: "https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=3" },
-            { id: '4', title: "SpaceX Starship Flight Test - Official Stream", channel: "SpaceX", views: "15M views", time: "3 weeks ago", duration: "2:45:00", thumbnail: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=4" },
-            { id: '5', title: "Deep Focus: 4 Hours of Ambient Space Music", channel: "Cosmic Sounds", views: "2.1M views", time: "5 months ago", duration: "4:00:12", thumbnail: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=5" },
-            { id: '6', title: "The Secret to Perfect Neapolitan Pizza", channel: "Chef Luigi", views: "340K views", time: "4 days ago", duration: "15:30", thumbnail: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=6" },
-            { id: '7', title: "Exploring the Dolomites in 8K HDR", channel: "NatureQuest", views: "5.6M views", time: "1 year ago", duration: "08:15", thumbnail: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=7" },
-            { id: '8', title: "Why I Switched to Neovim in 2024", channel: "DevLife", views: "120K views", time: "2 hours ago", duration: "22:10", thumbnail: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=8" },
+        const STREAMS = [
+            { id: '1', title: "TRYING THE WORLD'S SPICIEST CHIP (HARDCORE CHALLENGE)", channel: "RiskTaker", viewers: "45.2K", category: "Hardcore", thumbnail: "https://images.unsplash.com/photo-1544436076-41967e7fb901?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=risk" },
+            { id: '2', title: "IRL WALKING THROUGH TOKYO AT 3AM 🇯🇵", channel: "NeonWalker", viewers: "12.8K", category: "IRL", thumbnail: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=neon" },
+            { id: '3', title: "REACTION TO CRAZIEST INTERNET MEMES V24", channel: "MemeLord", viewers: "89.1K", category: "Memes", thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=meme" },
+            { id: '4', title: "BUILDING A PC IN A REFRIGERATOR??", channel: "TechChaos", viewers: "5.4K", category: "Challenges", thumbnail: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=tech" },
+            { id: '5', title: "24 HOUR NO SLEEP CODING MARATHON", channel: "DevBurnout", viewers: "2.1K", category: "Hardcore", thumbnail: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=dev" },
+            { id: '6', title: "IRL RAINFOREST SURVIVAL DAY 3", channel: "JungleJane", viewers: "33.7K", category: "IRL", thumbnail: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=jane" },
+            { id: '7', title: "ELON MUSK MEME REVIEW", channel: "StarshipPoster", viewers: "150K", category: "Memes", thumbnail: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=elon" },
+            { id: '8', title: "SKATEBOARDING DOWN MT. EVEREST (WILD)", channel: "ExtremeX", viewers: "112K", category: "Hardcore", thumbnail: "https://images.unsplash.com/photo-1520116467521-812fb2f74b17?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=ext" },
         ];
 
-        const CATEGORIES = ["All", "Music", "Gaming", "Live", "Coding", "Lo-fi", "React JS", "Tech", "Podcasts"];
+        const CATEGORIES = ["All", "Live", "Memes", "IRL", "Hardcore", "Challenges", "Music", "Creative"];
 
-        // Initialization
+        const CHAT_USERS = ["HyperCool", "StreamSniper", "LUL_Guy", "PeaceMaker", "GamerGirl99", "ZenMaster"];
+        const CHAT_MSGS = ["POGGERS", "Actually insane haha", "LUL", "RIP for the chip", "Is this real??", "Peace out vibes!", "Love from Berlin!"];
+
         window.onload = async () => {
             await signInAnonymously(auth);
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     currentUser = user;
-                    document.getElementById('userAvatar').innerText = user.uid.substring(0, 1).toUpperCase();
-                    syncWatchLater();
+                    const avatarEl = document.getElementById('userAvatar');
+                    if(avatarEl) avatarEl.innerText = user.uid.substring(0, 1).toUpperCase();
                 }
             });
             renderCategories();
             renderVideos();
+            renderSidebarChannels();
             lucide.createIcons();
         };
 
-        function syncWatchLater() {
-            if (!currentUser) return;
-            const q = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'watchLater');
-            onSnapshot(q, (snapshot) => {
-                watchLaterList = [];
-                snapshot.forEach(doc => watchLaterList.push({ id: doc.id, ...doc.data() }));
-                const countBadge = document.getElementById('watchLaterCount');
-                countBadge.innerText = watchLaterList.length;
-                countBadge.classList.toggle('hidden', watchLaterList.length === 0);
-                renderVideos(); // Re-render to update heart/save icons
-            });
-        }
-
-        async function toggleWatchLater(video) {
-            if (!currentUser) return;
-            const existing = watchLaterList.find(v => v.videoId === video.id);
-            if (existing) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'watchLater', existing.id));
-            } else {
-                const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'watchLater');
-                await setDoc(doc(colRef), { videoId: video.id, ...video, savedAt: Date.now() });
-            }
+        function renderSidebarChannels() {
+            const sidebar = document.getElementById('recommendedSidebar');
+            if(!sidebar) return;
+            sidebar.innerHTML = STREAMS.slice(0, 6).map(s => `
+                <div class="flex items-center gap-3 cursor-pointer group hover:bg-white/5 p-1 rounded-lg transition-colors" onclick="openPlayer('${s.id}')">
+                    <div class="relative shrink-0">
+                        <img src="${s.avatar}" class="w-8 h-8 rounded-lg object-cover">
+                        <div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-red-600 border-2 border-[#0a0a0c] rounded-full"></div>
+                    </div>
+                    <div class="flex-1 sidebar-text overflow-hidden">
+                        <p class="text-[13px] font-bold truncate">${s.channel}</p>
+                        <p class="text-[11px] text-gray-500">Live • ${s.viewers}</p>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function renderCategories() {
             const container = document.getElementById('categoryContainer');
+            if(!container) return;
             container.innerHTML = CATEGORIES.map(cat => `
                 <button 
-                    class="category-btn px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-white text-black' : 'bg-[#272727] text-white hover:bg-[#3f3f3f]'}"
+                    class="category-btn px-4 py-2 rounded-xl text-[12px] md:text-sm font-bold whitespace-nowrap transition-all ${activeCategory === cat ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20' : 'bg-[#18181b] text-gray-400 hover:bg-[#27272a] hover:text-white border border-white/5'}"
                     data-category="${cat}"
-                >${cat}</button>
+                >${cat.toUpperCase()}</button>
             `).join('');
 
             document.querySelectorAll('.category-btn').forEach(btn => {
@@ -300,108 +323,127 @@ pe<!DOCTYPE html>
 
         function renderVideos() {
             const grid = document.getElementById('videoGrid');
-            const filtered = VIDEOS.filter(v => {
-                const matchesSearch = v.title.toLowerCase().includes(currentSearch.toLowerCase());
-                const matchesCategory = activeCategory === "All" || v.title.includes(activeCategory) || v.channel.includes(activeCategory);
+            if(!grid) return;
+            const filtered = STREAMS.filter(s => {
+                const matchesSearch = s.title.toLowerCase().includes(currentSearch.toLowerCase()) || s.channel.toLowerCase().includes(currentSearch.toLowerCase());
+                const matchesCategory = activeCategory === "All" || s.category === activeCategory;
                 return matchesSearch && matchesCategory;
             });
 
-            grid.innerHTML = filtered.map(video => {
-                const isSaved = watchLaterList.some(v => v.videoId === video.id);
-                return `
-                <div class="video-card flex flex-col gap-3 group cursor-pointer" onclick="openPlayer('${video.id}')">
-                    <div class="relative aspect-video rounded-xl overflow-hidden bg-[#272727]">
-                        <img src="${video.thumbnail}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                        <span class="absolute bottom-2 right-2 bg-black/80 text-white text-[12px] font-medium px-1.5 py-0.5 rounded">${video.duration}</span>
-                        <button 
-                            onclick="event.stopPropagation(); window.toggleWatchLaterById('${video.id}')"
-                            class="watch-later-btn absolute top-2 right-2 p-2 rounded-full transition-all ${isSaved ? 'bg-red-600 text-white opacity-100' : 'bg-black/60 text-white opacity-0 hover:bg-black/80'}"
-                        >
-                            <i data-lucide="clock" size="18" ${isSaved ? 'fill="white"' : ''}></i>
-                        </button>
+            grid.innerHTML = filtered.map(s => `
+                <div class="flex flex-col gap-3 group cursor-pointer" onclick="openPlayer('${s.id}')">
+                    <div class="relative aspect-video rounded-xl md:rounded-2xl overflow-hidden bg-[#18181b] border border-white/5">
+                        <img src="${s.thumbnail}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        <div class="absolute top-3 left-3 bg-red-600 px-2 py-0.5 rounded text-[10px] font-black tracking-widest flex items-center gap-1 shadow-lg">
+                            <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span> LIVE
+                        </div>
+                        <div class="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[11px] font-bold">
+                            ${s.viewers} VIEWERS
+                        </div>
                     </div>
-                    <div class="flex gap-3 pr-4">
-                        <img src="${video.avatar}" class="w-9 h-9 rounded-full mt-1 flex-shrink-0" />
-                        <div class="flex flex-col">
-                            <h3 class="text-white font-semibold leading-tight line-clamp-2 text-[15px]">${video.title}</h3>
-                            <div class="flex items-center gap-1 mt-1 text-[#aaaaaa] text-[14px]">
-                                <span>${video.channel}</span>
-                                <i data-lucide="check-circle-2" size="12" fill="#aaaaaa" class="text-black"></i>
+                    <div class="flex gap-3 md:gap-4 px-1">
+                        <img src="${s.avatar}" class="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl mt-1 flex-shrink-0 ring-2 ring-white/5 object-cover" />
+                        <div class="flex flex-col overflow-hidden">
+                            <h3 class="text-white font-bold leading-tight line-clamp-2 text-sm md:text-[15px] group-hover:text-cyan-400 transition-colors">${s.title}</h3>
+                            <div class="flex items-center gap-1 mt-1.5">
+                                <span class="text-gray-400 font-bold text-[10px] md:text-xs uppercase tracking-wider truncate">${s.channel}</span>
+                                <i data-lucide="check-circle-2" size="12" class="text-cyan-400 shrink-0"></i>
                             </div>
-                            <p class="text-[#aaaaaa] text-[14px]">${video.views} • ${video.time}</p>
+                            <div class="flex gap-2 mt-2">
+                                <span class="text-[9px] md:text-[10px] bg-white/5 text-gray-500 px-2 py-0.5 rounded font-bold uppercase">${s.category}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                `;
-            }).join('');
+            `).join('');
             lucide.createIcons();
         }
 
+        let chatInterval;
         window.openPlayer = (id) => {
-            const video = VIDEOS.find(v => v.id === id);
-            if (!video) return;
+            const stream = STREAMS.find(s => s.id === id);
+            if (!stream) return;
             
             document.getElementById('gridView').classList.add('hidden');
             document.getElementById('playerView').classList.remove('hidden');
             document.getElementById('mainContent').scrollTop = 0;
 
-            document.getElementById('playerThumbnail').src = video.thumbnail;
-            document.getElementById('playerTitle').innerText = video.title;
-            document.getElementById('playerAvatar').src = video.avatar;
-            document.getElementById('playerChannel').innerText = video.channel;
+            document.getElementById('playerThumbnail').src = stream.thumbnail;
+            document.getElementById('playerTitle').innerText = stream.title;
+            document.getElementById('playerAvatar').src = stream.avatar;
+            document.getElementById('playerChannel').innerText = stream.channel;
+            document.getElementById('playerViewers').innerText = stream.viewers;
 
-            const saveBtn = document.getElementById('playerSaveBtn');
-            const isSaved = watchLaterList.some(v => v.videoId === video.id);
-            saveBtn.className = `flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${isSaved ? 'bg-red-600' : 'bg-[#272727] hover:bg-[#3f3f3f]'}`;
-            saveBtn.onclick = () => toggleWatchLater(video);
+            // Clear and start mock chat
+            const chatBox = document.getElementById('chatContainer');
+            chatBox.innerHTML = '';
+            clearInterval(chatInterval);
+            
+            chatInterval = setInterval(() => {
+                const user = CHAT_USERS[Math.floor(Math.random() * CHAT_USERS.length)];
+                const msg = CHAT_MSGS[Math.floor(Math.random() * CHAT_MSGS.length)];
+                const div = document.createElement('div');
+                div.className = 'chat-msg flex flex-col gap-0.5';
+                div.innerHTML = `
+                    <span class="text-[12px] font-black text-cyan-400 tracking-tight">${user}</span>
+                    <span class="text-[13px] text-gray-300 leading-tight">${msg}</span>
+                `;
+                chatBox.appendChild(div);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                if(chatBox.childNodes.length > 50) chatBox.removeChild(chatBox.firstChild);
+            }, 2000);
 
-            // Render Related
-            const recs = document.getElementById('recommendations');
-            recs.innerHTML = VIDEOS.map(v => `
-                <div class="flex gap-2 cursor-pointer group" onclick="openPlayer('${v.id}')">
-                    <div class="relative w-40 aspect-video rounded-lg overflow-hidden bg-[#272727] flex-shrink-0">
-                        <img src="${v.thumbnail}" class="w-full h-full object-cover" />
-                        <span class="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1 rounded">${v.duration}</span>
-                    </div>
-                    <div class="flex flex-col pr-2">
-                        <h4 class="text-sm font-bold line-clamp-2 leading-tight">${v.title}</h4>
-                        <div class="text-[#aaaaaa] text-xs mt-1">${v.channel}</div>
-                        <p class="text-[#aaaaaa] text-xs">${v.views} • ${v.time}</p>
-                    </div>
-                </div>
-            `).join('');
             lucide.createIcons();
+            
+            // Auto-collapse sidebar on smaller player views
+            if(window.innerWidth < 1280) {
+               toggleSidebar(true);
+            }
         };
 
         window.showHome = () => {
             document.getElementById('gridView').classList.remove('hidden');
             document.getElementById('playerView').classList.add('hidden');
+            clearInterval(chatInterval);
             activeCategory = "All";
             renderCategories();
             renderVideos();
         };
 
-        window.toggleWatchLaterById = (id) => {
-            const video = VIDEOS.find(v => v.id === id);
-            if (video) toggleWatchLater(video);
-        };
-
-        // UI Listeners
-        document.getElementById('menuBtn').onclick = () => {
+        function toggleSidebar(forceCollapse = false) {
             const sidebar = document.getElementById('sidebar');
             const texts = document.querySelectorAll('.sidebar-text');
-            if (sidebar.classList.contains('w-64')) {
+            
+            // On Mobile
+            if(window.innerWidth < 640) {
+                sidebar.classList.toggle('mobile-hidden');
+                return;
+            }
+
+            // On Desktop
+            if (forceCollapse || sidebar.classList.contains('w-64')) {
                 sidebar.classList.replace('w-64', 'w-20');
                 texts.forEach(t => t.classList.add('hidden'));
             } else {
                 sidebar.classList.replace('w-20', 'w-64');
                 texts.forEach(t => t.classList.remove('hidden'));
             }
-        };
+        }
+
+        // UI Listeners
+        document.getElementById('menuBtn').onclick = () => toggleSidebar();
 
         document.getElementById('searchInput').oninput = (e) => {
             currentSearch = e.target.value;
             renderVideos();
+        };
+
+        // Window Resize Logic
+        window.onresize = () => {
+            const sidebar = document.getElementById('sidebar');
+            if(window.innerWidth < 1024 && sidebar.classList.contains('w-64')) {
+                toggleSidebar(true);
+            }
         };
     </script>
 </body>
