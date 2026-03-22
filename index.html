@@ -1,0 +1,408 @@
+pe<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamTube</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0f0f0f;
+            color: white;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .video-card:hover .watch-later-btn {
+            opacity: 1;
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .active-sidebar-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="flex items-center justify-between px-4 h-14 fixed top-0 w-full bg-[#0f0f0f] z-50">
+        <div class="flex items-center gap-4">
+            <button id="menuBtn" class="p-2 hover:bg-white/10 rounded-full">
+                <i data-lucide="menu" size="24"></i>
+            </button>
+            <div class="flex items-center gap-1 cursor-pointer" onclick="showHome()">
+                <div class="bg-red-600 rounded-lg p-1 flex items-center justify-center">
+                    <i data-lucide="play" size="18" fill="white"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tighter">StreamTube</span>
+            </div>
+        </div>
+
+        <div class="hidden md:flex flex-1 max-w-[720px] items-center gap-4 ml-10">
+            <div class="flex flex-1">
+                <div class="flex flex-1 items-center bg-[#121212] border border-[#303030] rounded-l-full px-4 focus-within:border-blue-500 ml-4">
+                    <input 
+                        id="searchInput"
+                        type="text" 
+                        placeholder="Search" 
+                        class="bg-transparent w-full h-10 outline-none text-[16px]"
+                    />
+                </div>
+                <button id="searchBtn" class="bg-[#222222] border border-l-0 border-[#303030] rounded-r-full px-5 hover:bg-[#272727]">
+                    <i data-lucide="search" size="20"></i>
+                </button>
+            </div>
+            <button class="p-2.5 bg-[#181818] hover:bg-[#272727] rounded-full">
+                <i data-lucide="mic" size="20"></i>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2 md:gap-4">
+            <button class="p-2 hover:bg-white/10 rounded-full hidden sm:block">
+                <i data-lucide="video" size="24"></i>
+            </button>
+            <button class="p-2 hover:bg-white/10 rounded-full relative">
+                <i data-lucide="bell" size="24"></i>
+                <span class="absolute top-1.5 right-1.5 bg-red-600 text-[10px] font-bold px-1 rounded-full">9+</span>
+            </button>
+            <div id="userAvatar" class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-sm ml-2 cursor-pointer">
+                U
+            </div>
+        </div>
+    </header>
+
+    <div class="flex h-screen pt-14 overflow-hidden">
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="w-64 hidden sm:flex flex-col bg-[#0f0f0f] transition-all duration-200 overflow-y-auto custom-scrollbar">
+            <div class="p-3 space-y-1">
+                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10 active-sidebar-item" onclick="showHome()">
+                    <i data-lucide="home" size="22"></i>
+                    <span class="text-[14px] sidebar-text">Home</span>
+                </button>
+                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10">
+                    <i data-lucide="compass" size="22"></i>
+                    <span class="text-[14px] sidebar-text">Shorts</span>
+                </button>
+                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10">
+                    <i data-lucide="play-square" size="22"></i>
+                    <span class="text-[14px] sidebar-text">Subscriptions</span>
+                </button>
+            </div>
+            <hr class="border-white/10 my-2 mx-3">
+            <div class="p-3 space-y-1">
+                <h3 class="px-3 py-2 text-[16px] font-bold sidebar-text">You <i data-lucide="chevron-right" size="16" class="inline opacity-60"></i></h3>
+                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10">
+                    <i data-lucide="history" size="22"></i>
+                    <span class="text-[14px] sidebar-text">History</span>
+                </button>
+                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10">
+                    <i data-lucide="clock" size="22"></i>
+                    <div class="flex flex-1 justify-between items-center sidebar-text">
+                        <span class="text-[14px]">Watch Later</span>
+                        <span id="watchLaterCount" class="text-[12px] bg-red-600/20 text-red-500 px-1.5 rounded hidden">0</span>
+                    </div>
+                </button>
+                <button class="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl hover:bg-white/10">
+                    <i data-lucide="thumbs-up" size="22"></i>
+                    <span class="text-[14px] sidebar-text">Liked videos</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main id="mainContent" class="flex-1 bg-[#0f0f0f] overflow-y-auto custom-scrollbar">
+            <!-- Grid View -->
+            <div id="gridView">
+                <div id="categoryContainer" class="sticky top-0 bg-[#0f0f0f] z-40 px-4 py-3 flex gap-3 overflow-x-auto no-scrollbar">
+                    <!-- Categories will be injected here -->
+                </div>
+                <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 px-4 py-4 pb-20">
+                    <!-- Videos will be injected here -->
+                </div>
+            </div>
+
+            <!-- Player View -->
+            <div id="playerView" class="hidden flex flex-col lg:flex-row gap-6 p-4 md:p-6">
+                <div class="flex-1 max-w-[1280px]">
+                    <div id="mainVideoPlayer" class="aspect-video w-full bg-black rounded-xl overflow-hidden shadow-2xl relative group">
+                        <!-- Video Placeholder -->
+                        <img id="playerThumbnail" src="" class="w-full h-full object-cover blur-[2px] opacity-40">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                                <i data-lucide="play" size="32" fill="white" class="ml-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 id="playerTitle" class="text-xl md:text-2xl font-bold mt-4 line-clamp-2"></h1>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4">
+                        <div class="flex items-center gap-3">
+                            <img id="playerAvatar" src="" class="w-10 h-10 rounded-full">
+                            <div class="flex flex-col">
+                                <div class="flex items-center gap-1 font-bold text-[16px]">
+                                    <span id="playerChannel"></span>
+                                    <i data-lucide="check-circle-2" size="14" fill="#aaaaaa" class="text-black"></i>
+                                </div>
+                                <span class="text-[#aaaaaa] text-xs">1.24M subscribers</span>
+                            </div>
+                            <button class="bg-white text-black px-4 py-2 rounded-full font-bold text-sm ml-4 hover:bg-[#e5e5e5]">Subscribe</button>
+                        </div>
+                        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                            <div class="flex items-center bg-[#272727] rounded-full">
+                                <button class="flex items-center gap-2 px-4 py-2 hover:bg-[#3f3f3f] border-r border-white/10"><i data-lucide="thumbs-up" size="18"></i> 12K</button>
+                                <button class="px-4 py-2 hover:bg-[#3f3f3f] rounded-r-full"><i data-lucide="thumbs-up" size="18" style="transform: rotate(180deg)"></i></button>
+                            </div>
+                            <button class="flex items-center gap-2 px-4 py-2 bg-[#272727] hover:bg-[#3f3f3f] rounded-full"><i data-lucide="share-2" size="18"></i> Share</button>
+                            <button id="playerSaveBtn" class="flex items-center gap-2 px-4 py-2 bg-[#272727] hover:bg-[#3f3f3f] rounded-full"><i data-lucide="clock" size="18"></i> Save</button>
+                        </div>
+                    </div>
+                    <div class="bg-[#272727] rounded-xl p-3 mt-4 text-[14px]">
+                        <p class="font-bold">124,567 views • Oct 24, 2024</p>
+                        <p class="mt-1 text-white/90">Deep dive into building high-fidelity clones with HTML and Tailwind CSS...</p>
+                    </div>
+                </div>
+                <!-- Recommendations -->
+                <div id="recommendations" class="w-full lg:w-[400px] flex flex-col gap-3"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MOBILE NAV -->
+    <nav class="sm:hidden fixed bottom-0 w-full h-14 bg-[#0f0f0f] border-t border-white/10 flex items-center justify-around z-50">
+        <button class="flex flex-col items-center gap-1 text-[10px]" onclick="showHome()">
+            <i data-lucide="home" size="22"></i> <span>Home</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-[10px]">
+            <i data-lucide="compass" size="22"></i> <span>Shorts</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-[10px]">
+            <i data-lucide="play-square" size="22"></i> <span>Subs</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-[10px]">
+            <i data-lucide="user" size="22"></i> <span>You</span>
+        </button>
+    </nav>
+
+    <!-- FIREBASE & LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Setup
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'streamtube-html-v1';
+
+        // State
+        let currentUser = null;
+        let watchLaterList = [];
+        let activeCategory = "All";
+        let currentSearch = "";
+
+        const VIDEOS = [
+            { id: '1', title: "Building a Modern YouTube Clone with React and Tailwind", channel: "CodeMaster", views: "1.2M views", time: "2 days ago", duration: "12:45", thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=1" },
+            { id: '2', title: "Lo-fi Hip Hop Radio - Beats to Study/Relax to", channel: "Lofi Girl", views: "45K watching", time: "LIVE", duration: "LIVE", thumbnail: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=2" },
+            { id: '3', title: "Top 10 Desks Setups for Productivity in 2024", channel: "TechSpace", views: "850K views", time: "1 week ago", duration: "10:20", thumbnail: "https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=3" },
+            { id: '4', title: "SpaceX Starship Flight Test - Official Stream", channel: "SpaceX", views: "15M views", time: "3 weeks ago", duration: "2:45:00", thumbnail: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=4" },
+            { id: '5', title: "Deep Focus: 4 Hours of Ambient Space Music", channel: "Cosmic Sounds", views: "2.1M views", time: "5 months ago", duration: "4:00:12", thumbnail: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=5" },
+            { id: '6', title: "The Secret to Perfect Neapolitan Pizza", channel: "Chef Luigi", views: "340K views", time: "4 days ago", duration: "15:30", thumbnail: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=6" },
+            { id: '7', title: "Exploring the Dolomites in 8K HDR", channel: "NatureQuest", views: "5.6M views", time: "1 year ago", duration: "08:15", thumbnail: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=7" },
+            { id: '8', title: "Why I Switched to Neovim in 2024", channel: "DevLife", views: "120K views", time: "2 hours ago", duration: "22:10", thumbnail: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=8" },
+        ];
+
+        const CATEGORIES = ["All", "Music", "Gaming", "Live", "Coding", "Lo-fi", "React JS", "Tech", "Podcasts"];
+
+        // Initialization
+        window.onload = async () => {
+            await signInAnonymously(auth);
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('userAvatar').innerText = user.uid.substring(0, 1).toUpperCase();
+                    syncWatchLater();
+                }
+            });
+            renderCategories();
+            renderVideos();
+            lucide.createIcons();
+        };
+
+        function syncWatchLater() {
+            if (!currentUser) return;
+            const q = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'watchLater');
+            onSnapshot(q, (snapshot) => {
+                watchLaterList = [];
+                snapshot.forEach(doc => watchLaterList.push({ id: doc.id, ...doc.data() }));
+                const countBadge = document.getElementById('watchLaterCount');
+                countBadge.innerText = watchLaterList.length;
+                countBadge.classList.toggle('hidden', watchLaterList.length === 0);
+                renderVideos(); // Re-render to update heart/save icons
+            });
+        }
+
+        async function toggleWatchLater(video) {
+            if (!currentUser) return;
+            const existing = watchLaterList.find(v => v.videoId === video.id);
+            if (existing) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'watchLater', existing.id));
+            } else {
+                const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'watchLater');
+                await setDoc(doc(colRef), { videoId: video.id, ...video, savedAt: Date.now() });
+            }
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoryContainer');
+            container.innerHTML = CATEGORIES.map(cat => `
+                <button 
+                    class="category-btn px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-white text-black' : 'bg-[#272727] text-white hover:bg-[#3f3f3f]'}"
+                    data-category="${cat}"
+                >${cat}</button>
+            `).join('');
+
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    activeCategory = e.target.dataset.category;
+                    renderCategories();
+                    renderVideos();
+                };
+            });
+        }
+
+        function renderVideos() {
+            const grid = document.getElementById('videoGrid');
+            const filtered = VIDEOS.filter(v => {
+                const matchesSearch = v.title.toLowerCase().includes(currentSearch.toLowerCase());
+                const matchesCategory = activeCategory === "All" || v.title.includes(activeCategory) || v.channel.includes(activeCategory);
+                return matchesSearch && matchesCategory;
+            });
+
+            grid.innerHTML = filtered.map(video => {
+                const isSaved = watchLaterList.some(v => v.videoId === video.id);
+                return `
+                <div class="video-card flex flex-col gap-3 group cursor-pointer" onclick="openPlayer('${video.id}')">
+                    <div class="relative aspect-video rounded-xl overflow-hidden bg-[#272727]">
+                        <img src="${video.thumbnail}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                        <span class="absolute bottom-2 right-2 bg-black/80 text-white text-[12px] font-medium px-1.5 py-0.5 rounded">${video.duration}</span>
+                        <button 
+                            onclick="event.stopPropagation(); window.toggleWatchLaterById('${video.id}')"
+                            class="watch-later-btn absolute top-2 right-2 p-2 rounded-full transition-all ${isSaved ? 'bg-red-600 text-white opacity-100' : 'bg-black/60 text-white opacity-0 hover:bg-black/80'}"
+                        >
+                            <i data-lucide="clock" size="18" ${isSaved ? 'fill="white"' : ''}></i>
+                        </button>
+                    </div>
+                    <div class="flex gap-3 pr-4">
+                        <img src="${video.avatar}" class="w-9 h-9 rounded-full mt-1 flex-shrink-0" />
+                        <div class="flex flex-col">
+                            <h3 class="text-white font-semibold leading-tight line-clamp-2 text-[15px]">${video.title}</h3>
+                            <div class="flex items-center gap-1 mt-1 text-[#aaaaaa] text-[14px]">
+                                <span>${video.channel}</span>
+                                <i data-lucide="check-circle-2" size="12" fill="#aaaaaa" class="text-black"></i>
+                            </div>
+                            <p class="text-[#aaaaaa] text-[14px]">${video.views} • ${video.time}</p>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        window.openPlayer = (id) => {
+            const video = VIDEOS.find(v => v.id === id);
+            if (!video) return;
+            
+            document.getElementById('gridView').classList.add('hidden');
+            document.getElementById('playerView').classList.remove('hidden');
+            document.getElementById('mainContent').scrollTop = 0;
+
+            document.getElementById('playerThumbnail').src = video.thumbnail;
+            document.getElementById('playerTitle').innerText = video.title;
+            document.getElementById('playerAvatar').src = video.avatar;
+            document.getElementById('playerChannel').innerText = video.channel;
+
+            const saveBtn = document.getElementById('playerSaveBtn');
+            const isSaved = watchLaterList.some(v => v.videoId === video.id);
+            saveBtn.className = `flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${isSaved ? 'bg-red-600' : 'bg-[#272727] hover:bg-[#3f3f3f]'}`;
+            saveBtn.onclick = () => toggleWatchLater(video);
+
+            // Render Related
+            const recs = document.getElementById('recommendations');
+            recs.innerHTML = VIDEOS.map(v => `
+                <div class="flex gap-2 cursor-pointer group" onclick="openPlayer('${v.id}')">
+                    <div class="relative w-40 aspect-video rounded-lg overflow-hidden bg-[#272727] flex-shrink-0">
+                        <img src="${v.thumbnail}" class="w-full h-full object-cover" />
+                        <span class="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1 rounded">${v.duration}</span>
+                    </div>
+                    <div class="flex flex-col pr-2">
+                        <h4 class="text-sm font-bold line-clamp-2 leading-tight">${v.title}</h4>
+                        <div class="text-[#aaaaaa] text-xs mt-1">${v.channel}</div>
+                        <p class="text-[#aaaaaa] text-xs">${v.views} • ${v.time}</p>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        };
+
+        window.showHome = () => {
+            document.getElementById('gridView').classList.remove('hidden');
+            document.getElementById('playerView').classList.add('hidden');
+            activeCategory = "All";
+            renderCategories();
+            renderVideos();
+        };
+
+        window.toggleWatchLaterById = (id) => {
+            const video = VIDEOS.find(v => v.id === id);
+            if (video) toggleWatchLater(video);
+        };
+
+        // UI Listeners
+        document.getElementById('menuBtn').onclick = () => {
+            const sidebar = document.getElementById('sidebar');
+            const texts = document.querySelectorAll('.sidebar-text');
+            if (sidebar.classList.contains('w-64')) {
+                sidebar.classList.replace('w-64', 'w-20');
+                texts.forEach(t => t.classList.add('hidden'));
+            } else {
+                sidebar.classList.replace('w-20', 'w-64');
+                texts.forEach(t => t.classList.remove('hidden'));
+            }
+        };
+
+        document.getElementById('searchInput').oninput = (e) => {
+            currentSearch = e.target.value;
+            renderVideos();
+        };
+    </script>
+</body>
+</html>
