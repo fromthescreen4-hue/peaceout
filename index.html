@@ -18,6 +18,58 @@
             overflow: hidden;
         }
 
+        /* --- SPLASH SCREEN ANIMATIONS --- */
+        #splashScreen {
+            position: fixed;
+            inset: 0;
+            background-color: #050505;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease-in-out, visibility 0.8s;
+        }
+
+        .splash-logo {
+            animation: logoEntrance 1s ease-out forwards;
+        }
+
+        .splash-zap {
+            filter: drop-shadow(0 0 10px #00f2ff);
+            animation: zapPulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes logoEntrance {
+            0% { opacity: 0; transform: scale(0.8); filter: blur(10px); }
+            50% { opacity: 1; transform: scale(1.05); filter: blur(0px); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes zapPulse {
+            0%, 100% { filter: drop-shadow(0 0 5px #00f2ff); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 25px #f0f); transform: scale(1.1); }
+        }
+
+        @keyframes flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+            20%, 22%, 24%, 55% { opacity: 0.4; }
+        }
+
+        .neon-flicker {
+            animation: flicker 3s infinite;
+        }
+
+        #mainAppContent {
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        #mainAppContent.visible {
+            opacity: 1;
+        }
+
+        /* --- UI UTILITIES --- */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -30,10 +82,6 @@
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 242, 255, 0.3);
-        }
-
-        .live-glow {
-            box-shadow: 0 0 15px rgba(255, 0, 122, 0.4);
         }
 
         .line-clamp-2 {
@@ -62,7 +110,6 @@
             animation: fadeIn 0.3s ease-out;
         }
 
-        /* Hide sidebar on mobile unless toggled */
         @media (max-width: 640px) {
             #sidebar.mobile-hidden {
                 transform: translateX(-100%);
@@ -75,168 +122,192 @@
 </head>
 <body>
 
-    <!-- HEADER -->
-    <header class="flex items-center justify-between px-4 h-16 fixed top-0 w-full bg-[#0a0a0c]/80 backdrop-blur-md border-b border-white/5 z-50">
-        <div class="flex items-center gap-3 md:gap-6">
-            <button id="menuBtn" class="p-2 hover:bg-white/5 rounded-lg transition-colors">
-                <i data-lucide="layout-grid" size="22" class="text-cyan-400"></i>
-            </button>
-            <div class="flex items-center gap-2 cursor-pointer group" onclick="showHome()">
-                <div class="w-8 h-8 md:w-9 md:h-9 bg-gradient-to-br from-cyan-500 to-fuchsia-600 rounded-lg flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
-                    <i data-lucide="zap" size="18" fill="white" class="text-white"></i>
-                </div>
-                <span class="text-lg md:text-xl font-black tracking-tight neon-text italic">PEACE OUT</span>
+    <!-- SPLASH SCREEN -->
+    <div id="splashScreen">
+        <div class="splash-logo flex flex-col items-center gap-6">
+            <div class="w-24 h-24 bg-gradient-to-br from-cyan-500 to-fuchsia-600 rounded-2xl flex items-center justify-center rotate-3 splash-zap shadow-2xl">
+                <i data-lucide="zap" size="48" fill="white" class="text-white"></i>
+            </div>
+            <h1 class="text-5xl font-black tracking-tighter neon-text italic neon-flicker">PEACE OUT</h1>
+            <div class="mt-4 flex gap-2">
+                <div class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                <div class="w-2 h-2 bg-fuchsia-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
             </div>
         </div>
+    </div>
 
-        <div class="hidden md:flex flex-1 max-w-[600px] items-center gap-2 mx-4 lg:mx-10">
-            <div class="flex flex-1 items-center bg-[#18181b] border border-white/10 rounded-xl px-4 focus-within:border-cyan-500/50 transition-all">
-                <i data-lucide="search" size="18" class="text-gray-500"></i>
-                <input 
-                    id="searchInput"
-                    type="text" 
-                    placeholder="Find a stream..." 
-                    class="bg-transparent w-full h-11 outline-none text-[15px] px-3 font-medium"
-                />
-            </div>
-        </div>
-
-        <div class="flex items-center gap-2 md:gap-4">
-            <button class="hidden sm:flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm transition-all">
-                <i data-lucide="radio" size="16"></i> <span class="hidden lg:inline">GO LIVE</span>
-            </button>
-            <button class="p-2 hover:bg-white/5 rounded-lg relative">
-                <i data-lucide="bell" size="22"></i>
-                <span class="absolute top-2 right-2 w-2 h-2 bg-fuchsia-500 rounded-full"></span>
-            </button>
-            <div id="userAvatar" class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#18181b] border border-white/10 flex items-center justify-center font-bold text-cyan-400 cursor-pointer hover:border-cyan-500 transition-all">
-                P
-            </div>
-        </div>
-    </header>
-
-    <div class="flex h-screen pt-16 overflow-hidden">
-        <!-- SIDEBAR -->
-        <aside id="sidebar" class="w-64 mobile-hidden flex flex-col bg-[#0a0a0c] border-r border-white/5 transition-all duration-300 overflow-y-auto custom-scrollbar shadow-2xl sm:shadow-none">
-            <div class="p-4 space-y-1">
-                <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 sidebar-text">Navigation</p>
-                <button class="w-full flex items-center gap-4 px-3 py-3 rounded-lg nav-item-active group" onclick="showHome()">
-                    <i data-lucide="home" size="20"></i>
-                    <span class="text-[14px] font-semibold sidebar-text">Discover</span>
+    <!-- MAIN APP CONTENT -->
+    <div id="mainAppContent">
+        <!-- HEADER -->
+        <header class="flex items-center justify-between px-4 h-16 fixed top-0 w-full bg-[#0a0a0c]/80 backdrop-blur-md border-b border-white/5 z-50">
+            <div class="flex items-center gap-3 md:gap-6">
+                <button id="menuBtn" class="p-2 hover:bg-white/5 rounded-lg transition-colors">
+                    <i data-lucide="layout-grid" size="22" class="text-cyan-400"></i>
                 </button>
-                <button class="w-full flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all">
-                    <i data-lucide="flame" size="20"></i>
-                    <span class="text-[14px] font-semibold sidebar-text">Trending</span>
-                </button>
-                <button class="w-full flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all">
-                    <i data-lucide="users" size="20"></i>
-                    <span class="text-[14px] font-semibold sidebar-text">Following</span>
-                </button>
-            </div>
-
-            <div class="p-4 mt-2">
-                <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-4 sidebar-text">Recommended</p>
-                <div id="recommendedSidebar" class="space-y-4">
-                    <!-- Streamers will be injected here -->
+                <div class="flex items-center gap-2 cursor-pointer group" onclick="showHome()">
+                    <div class="w-8 h-8 md:w-9 md:h-9 bg-gradient-to-br from-cyan-500 to-fuchsia-600 rounded-lg flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
+                        <i data-lucide="zap" size="18" fill="white" class="text-white"></i>
+                    </div>
+                    <span class="text-lg md:text-xl font-black tracking-tight neon-text italic">PEACE OUT</span>
                 </div>
             </div>
-        </aside>
 
-        <!-- MAIN CONTENT -->
-        <main id="mainContent" class="flex-1 bg-[#050505] overflow-y-auto custom-scrollbar">
-            <!-- Discover View -->
-            <div id="gridView">
-                <div id="categoryContainer" class="sticky top-0 bg-[#050505]/95 backdrop-blur-md z-40 px-4 md:px-6 py-4 flex gap-2 md:gap-3 overflow-x-auto no-scrollbar border-b border-white/5">
-                    <!-- Categories will be injected here -->
+            <div class="hidden md:flex flex-1 max-w-[600px] items-center gap-2 mx-4 lg:mx-10">
+                <div class="flex flex-1 items-center bg-[#18181b] border border-white/10 rounded-xl px-4 focus-within:border-cyan-500/50 transition-all">
+                    <i data-lucide="search" size="18" class="text-gray-500"></i>
+                    <input 
+                        id="searchInput"
+                        type="text" 
+                        placeholder="Search for Indian Memers..." 
+                        class="bg-transparent w-full h-11 outline-none text-[15px] px-3 font-medium"
+                    />
                 </div>
-                
-                <div class="px-4 md:px-6 py-6">
-                    <h2 class="text-xl md:text-2xl font-black mb-6 flex items-center gap-3">
-                        <span class="w-2 h-6 md:h-8 bg-fuchsia-600 rounded-full"></span>
-                        LIVE NOW
-                    </h2>
-                    <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 pb-24">
-                        <!-- Videos will be injected here -->
+            </div>
+
+            <div class="flex items-center gap-2 md:gap-4">
+                <button class="hidden sm:flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm transition-all">
+                    <i data-lucide="radio" size="16"></i> <span class="hidden lg:inline">GO LIVE</span>
+                </button>
+                <button class="p-2 hover:bg-white/5 rounded-lg relative">
+                    <i data-lucide="bell" size="22"></i>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-fuchsia-500 rounded-full"></span>
+                </button>
+                <div class="flex items-center gap-2 ml-2">
+                    <div id="userAvatar" class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center font-bold text-white cursor-pointer border border-white/10 hover:border-cyan-400 transition-all">
+                        ID
+                    </div>
+                    <div class="hidden xl:block text-left leading-none">
+                        <p class="text-[11px] font-bold text-cyan-400 tracking-wider">USER NODE</p>
+                        <p id="userNameDisplay" class="text-sm font-black tracking-tight text-white">Indian_Idiot_007</p>
                     </div>
                 </div>
             </div>
+        </header>
 
-            <!-- Streaming Player View -->
-            <div id="playerView" class="hidden h-full flex flex-col xl:flex-row overflow-hidden">
-                <div class="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-6 bg-[#050505]">
-                    <!-- Main Stream -->
-                    <div class="aspect-video w-full bg-black rounded-xl md:rounded-2xl overflow-hidden shadow-2xl relative group border border-white/10">
-                        <img id="playerThumbnail" src="" class="w-full h-full object-cover">
-                        <div class="absolute top-3 left-3 md:top-4 md:left-4 bg-red-600 px-2 md:px-3 py-1 rounded-md text-[10px] md:text-[12px] font-black tracking-tighter flex items-center gap-1 md:gap-2">
-                            <span class="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full animate-pulse"></span> LIVE
-                        </div>
-                        <div class="absolute top-3 right-3 md:top-4 md:right-4 bg-black/60 backdrop-blur-md px-2 md:px-3 py-1 rounded-md text-[10px] md:text-[12px] font-bold">
-                            <i data-lucide="eye" size="14" class="inline mr-1"></i> <span id="playerViewers">0</span>
+        <div class="flex h-screen pt-16 overflow-hidden">
+            <!-- SIDEBAR -->
+            <aside id="sidebar" class="w-64 mobile-hidden flex flex-col bg-[#0a0a0c] border-r border-white/5 transition-all duration-300 overflow-y-auto custom-scrollbar shadow-2xl sm:shadow-none">
+                <div class="p-4 space-y-1">
+                    <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3 sidebar-text">Navigation</p>
+                    <button class="w-full flex items-center gap-4 px-3 py-3 rounded-lg nav-item-active group" onclick="showHome()">
+                        <i data-lucide="home" size="20"></i>
+                        <span class="text-[14px] font-semibold sidebar-text">Discover</span>
+                    </button>
+                    <button class="w-full flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all">
+                        <i data-lucide="flame" size="20"></i>
+                        <span class="text-[14px] font-semibold sidebar-text">Trending</span>
+                    </button>
+                    <button class="w-full flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-all">
+                        <i data-lucide="users" size="20"></i>
+                        <span class="text-[14px] font-semibold sidebar-text">Following</span>
+                    </button>
+                </div>
+
+                <div class="p-4 mt-2">
+                    <p class="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-4 sidebar-text">Recommended</p>
+                    <div id="recommendedSidebar" class="space-y-4">
+                        <!-- Streamers will be injected here -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <main id="mainContent" class="flex-1 bg-[#050505] overflow-y-auto custom-scrollbar">
+                <!-- Discover View -->
+                <div id="gridView">
+                    <div id="categoryContainer" class="sticky top-0 bg-[#050505]/95 backdrop-blur-md z-40 px-4 md:px-6 py-4 flex gap-2 md:gap-3 overflow-x-auto no-scrollbar border-b border-white/5">
+                        <!-- Categories will be injected here -->
+                    </div>
+                    
+                    <div class="px-4 md:px-6 py-6">
+                        <h2 class="text-xl md:text-2xl font-black mb-6 flex items-center gap-3">
+                            <span class="w-2 h-6 md:h-8 bg-fuchsia-600 rounded-full"></span>
+                            FEATURING: INDIAN LEGENDS
+                        </h2>
+                        <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 pb-24">
+                            <!-- Videos will be injected here -->
                         </div>
                     </div>
+                </div>
 
-                    <!-- Stream Details -->
-                    <div class="mt-4 md:mt-6 flex flex-col md:flex-row gap-4 md:gap-6">
-                        <div class="flex-1">
-                            <h1 id="playerTitle" class="text-lg md:text-2xl font-black leading-tight"></h1>
-                            <div class="flex items-center gap-3 md:gap-4 mt-4 md:mt-6 p-3 md:p-4 bg-white/5 rounded-xl md:rounded-2xl border border-white/5">
-                                <img id="playerAvatar" src="" class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl ring-2 ring-cyan-500/30">
-                                <div class="flex-1 overflow-hidden">
-                                    <div class="flex items-center gap-2">
-                                        <span id="playerChannel" class="font-bold text-base md:text-lg truncate"></span>
-                                        <i data-lucide="check-circle-2" size="16" class="text-cyan-400 shrink-0"></i>
+                <!-- Streaming Player View -->
+                <div id="playerView" class="hidden h-full flex flex-col xl:flex-row overflow-hidden">
+                    <div class="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-6 bg-[#050505]">
+                        <!-- Main Stream -->
+                        <div class="aspect-video w-full bg-black rounded-xl md:rounded-2xl overflow-hidden shadow-2xl relative group border border-white/10">
+                            <img id="playerThumbnail" src="" class="w-full h-full object-cover">
+                            <div class="absolute top-3 left-3 md:top-4 md:left-4 bg-red-600 px-2 md:px-3 py-1 rounded-md text-[10px] md:text-[12px] font-black tracking-tighter flex items-center gap-1 md:gap-2">
+                                <span class="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full animate-pulse"></span> LIVE
+                            </div>
+                            <div class="absolute top-3 right-3 md:top-4 md:right-4 bg-black/60 backdrop-blur-md px-2 md:px-3 py-1 rounded-md text-[10px] md:text-[12px] font-bold">
+                                <i data-lucide="eye" size="14" class="inline mr-1"></i> <span id="playerViewers">0</span>
+                            </div>
+                        </div>
+
+                        <!-- Stream Details -->
+                        <div class="mt-4 md:mt-6 flex flex-col md:flex-row gap-4 md:gap-6">
+                            <div class="flex-1">
+                                <h1 id="playerTitle" class="text-lg md:text-2xl font-black leading-tight"></h1>
+                                <div class="flex items-center gap-3 md:gap-4 mt-4 md:mt-6 p-3 md:p-4 bg-white/5 rounded-xl md:rounded-2xl border border-white/5">
+                                    <img id="playerAvatar" src="" class="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl ring-2 ring-cyan-500/30 object-cover">
+                                    <div class="flex-1 overflow-hidden">
+                                        <div class="flex items-center gap-2">
+                                            <span id="playerChannel" class="font-bold text-base md:text-lg truncate"></span>
+                                            <i data-lucide="check-circle-2" size="16" class="text-cyan-400 shrink-0"></i>
+                                        </div>
+                                        <div class="flex flex-wrap gap-2 md:gap-4 mt-1">
+                                            <span class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Desi Memes</span>
+                                            <span class="text-fuchsia-400 text-[10px] font-bold uppercase tracking-widest">Hindi</span>
+                                        </div>
                                     </div>
-                                    <div class="flex flex-wrap gap-2 md:gap-4 mt-1">
-                                        <span class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Memes & IRL</span>
-                                        <span class="text-fuchsia-400 text-[10px] font-bold uppercase tracking-widest">English</span>
-                                    </div>
+                                    <button class="bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-lg md:rounded-xl text-xs md:text-sm font-bold transition-all shadow-lg shadow-fuchsia-600/20 shrink-0">
+                                        FOLLOW
+                                    </button>
                                 </div>
-                                <button class="bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-lg md:rounded-xl text-xs md:text-sm font-bold transition-all shadow-lg shadow-fuchsia-600/20 shrink-0">
-                                    FOLLOW
-                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LIVE CHAT SIDEBAR -->
+                    <div class="w-full xl:w-[360px] 2xl:w-[400px] h-[400px] xl:h-full bg-[#0a0a0c] border-l border-white/5 flex flex-col shrink-0">
+                        <div class="p-3 md:p-4 border-b border-white/5 flex items-center justify-between">
+                            <span class="font-black text-xs md:text-sm tracking-widest uppercase text-gray-400">Live Chat</span>
+                            <div class="flex items-center gap-2">
+                                 <i data-lucide="users" size="16" class="text-gray-500"></i>
+                                 <i data-lucide="settings-2" size="16" class="text-gray-500 cursor-pointer"></i>
+                            </div>
+                        </div>
+                        <div id="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar text-sm">
+                            <!-- Mock chat messages -->
+                        </div>
+                        <div class="p-3 md:p-4 bg-[#0a0a0c] border-t border-white/5">
+                            <div class="relative">
+                                <input type="text" placeholder="Send a message" class="w-full bg-[#18181b] border border-white/10 rounded-xl py-2.5 md:py-3 px-4 pr-12 text-sm focus:border-cyan-500/50 outline-none">
+                                <button class="absolute right-3 top-2.5 md:top-3 text-cyan-400"><i data-lucide="send" size="18"></i></button>
                             </div>
                         </div>
                     </div>
                 </div>
+            </main>
+        </div>
 
-                <!-- LIVE CHAT SIDEBAR -->
-                <div class="w-full xl:w-[360px] 2xl:w-[400px] h-[400px] xl:h-full bg-[#0a0a0c] border-l border-white/5 flex flex-col shrink-0">
-                    <div class="p-3 md:p-4 border-b border-white/5 flex items-center justify-between">
-                        <span class="font-black text-xs md:text-sm tracking-widest uppercase text-gray-400">Live Chat</span>
-                        <div class="flex items-center gap-2">
-                             <i data-lucide="users" size="16" class="text-gray-500"></i>
-                             <i data-lucide="settings-2" size="16" class="text-gray-500 cursor-pointer"></i>
-                        </div>
-                    </div>
-                    <div id="chatContainer" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar text-sm">
-                        <!-- Mock chat messages -->
-                    </div>
-                    <div class="p-3 md:p-4 bg-[#0a0a0c] border-t border-white/5">
-                        <div class="relative">
-                            <input type="text" placeholder="Send a message" class="w-full bg-[#18181b] border border-white/10 rounded-xl py-2.5 md:py-3 px-4 pr-12 text-sm focus:border-cyan-500/50 outline-none">
-                            <button class="absolute right-3 top-2.5 md:top-3 text-cyan-400"><i data-lucide="send" size="18"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+        <!-- MOBILE NAV -->
+        <nav class="sm:hidden fixed bottom-0 w-full h-16 bg-[#0a0a0c] border-t border-white/5 flex items-center justify-around z-50 px-2">
+            <button class="flex flex-col items-center gap-1 text-[10px] text-cyan-400" onclick="showHome()">
+                <i data-lucide="compass" size="22"></i> <span class="font-bold">Discover</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 text-[10px] text-gray-500">
+                <i data-lucide="heart" size="22"></i> <span>Following</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 text-[10px] text-gray-500" id="mobileSearchBtn">
+                <i data-lucide="search" size="22"></i> <span>Search</span>
+            </button>
+            <button class="flex flex-col items-center gap-1 text-[10px] text-gray-500">
+                <i data-lucide="user" size="22"></i> <span>Profile</span>
+            </button>
+        </nav>
     </div>
-
-    <!-- MOBILE NAV -->
-    <nav class="sm:hidden fixed bottom-0 w-full h-16 bg-[#0a0a0c] border-t border-white/5 flex items-center justify-around z-50 px-2">
-        <button class="flex flex-col items-center gap-1 text-[10px] text-cyan-400" onclick="showHome()">
-            <i data-lucide="compass" size="22"></i> <span class="font-bold">Discover</span>
-        </button>
-        <button class="flex flex-col items-center gap-1 text-[10px] text-gray-500">
-            <i data-lucide="heart" size="22"></i> <span>Following</span>
-        </button>
-        <button class="flex flex-col items-center gap-1 text-[10px] text-gray-500" id="mobileSearchBtn">
-            <i data-lucide="search" size="22"></i> <span>Search</span>
-        </button>
-        <button class="flex flex-col items-center gap-1 text-[10px] text-gray-500">
-            <i data-lucide="user" size="22"></i> <span>Profile</span>
-        </button>
-    </nav>
 
     <!-- FIREBASE & LOGIC -->
     <script type="module">
@@ -244,20 +315,20 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Constants
+        // Constants featuring Indian Meme Icons
         const STREAMS = [
-            { id: '1', title: "TRYING THE WORLD'S SPICIEST CHIP (HARDCORE CHALLENGE)", channel: "RiskTaker", viewers: "45.2K", category: "Hardcore", thumbnail: "https://images.unsplash.com/photo-1544436076-41967e7fb901?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=risk" },
-            { id: '2', title: "IRL WALKING THROUGH TOKYO AT 3AM 🇯🇵", channel: "NeonWalker", viewers: "12.8K", category: "IRL", thumbnail: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=neon" },
-            { id: '3', title: "REACTION TO CRAZIEST INTERNET MEMES V24", channel: "MemeLord", viewers: "89.1K", category: "Memes", thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=meme" },
-            { id: '4', title: "BUILDING A PC IN A REFRIGERATOR??", channel: "TechChaos", viewers: "5.4K", category: "Challenges", thumbnail: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=tech" },
-            { id: '5', title: "24 HOUR NO SLEEP CODING MARATHON", channel: "DevBurnout", viewers: "2.1K", category: "Hardcore", thumbnail: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=dev" },
-            { id: '6', title: "IRL RAINFOREST SURVIVAL DAY 3", channel: "JungleJane", viewers: "33.7K", category: "IRL", thumbnail: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=jane" },
-            { id: '7', title: "ELON MUSK MEME REVIEW", channel: "StarshipPoster", viewers: "150K", category: "Memes", thumbnail: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=elon" },
-            { id: '8', title: "SKATEBOARDING DOWN MT. EVEREST (WILD)", channel: "ExtremeX", viewers: "112K", category: "Hardcore", thumbnail: "https://images.unsplash.com/photo-1520116467521-812fb2f74b17?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=ext" },
+            { id: '1', title: "LORD PUNEET BATHING IN DRAIN WATER (HARDCORE CHALLENGE)", channel: "PuneetSuperstar", viewers: "1.2M", category: "Hardcore", thumbnail: "https://images.unsplash.com/photo-1544436076-41967e7fb901?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=puneet" },
+            { id: '2', title: "HUM PE TOH HAI HI NAU - ROASTING EVERYONE", channel: "ArpitBala", viewers: "450K", category: "Memes", thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=arpit" },
+            { id: '3', title: "IRL DOLLY CHAIWALA SERVING BILL GATES (EXCLUSIVE)", channel: "DollyChaiwala", viewers: "2.5M", category: "IRL", thumbnail: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=dolly" },
+            { id: '4', title: "NIKAL PEHLI FURSAT MEIN - LIVE REACTION", channel: "HindustaniBhau", viewers: "890K", category: "Challenges", thumbnail: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=bhau" },
+            { id: '5', title: "ELVISH BHAI KE AAGE KOI BOL SAKTA HAI KYA?", channel: "SystummArmy", viewers: "3.1M", category: "Hardcore", thumbnail: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=elvish" },
+            { id: '6', title: "VADA PAV GIRL VS CUSTOMER - HIGH TENSION IRL", channel: "ChandrikaDixit", viewers: "220K", category: "IRL", thumbnail: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=vadapav" },
+            { id: '7', title: "WHO IS BINOD? FINDING THE REAL BINOD", channel: "SlayyPoint", viewers: "150K", category: "Memes", thumbnail: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=binod" },
+            { id: '8', title: "DEEPAK KALAL - I AM A GIRL NOW LIVE", channel: "DeepakKalal", viewers: "67K", category: "Creative", thumbnail: "https://images.unsplash.com/photo-1520116467521-812fb2f74b17?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=kalal" },
         ];
-        const CATEGORIES = ["All", "Live", "Memes", "IRL", "Hardcore", "Challenges", "Music", "Creative"];
-        const CHAT_USERS = ["HyperCool", "StreamSniper", "LUL_Guy", "PeaceMaker", "GamerGirl99", "ZenMaster"];
-        const CHAT_MSGS = ["POGGERS", "Actually insane haha", "LUL", "RIP for the chip", "Is this real??", "Peace out vibes!", "Love from Berlin!"];
+        const CATEGORIES = ["All", "Desi Memes", "Systumm", "IRL", "Hardcore", "Food Challenges", "Roasts"];
+        const CHAT_USERS = ["Baman", "Lakshey_Chaudhary", "TriggeredInsaan", "TharaBhaiJoginder", "CarryMinati", "PhysicsWallah"];
+        const CHAT_MSGS = ["Systummmm hang kar diya!", "Nikal Pehli Fursat mein!", "Lord Puneet is King", "Arpit Bala op", "Hum pe toh hai hi nau!", "Arey Binod tum yahan?", "Maza aa gaya bhai"];
 
         let activeCategory = "All";
         let currentSearch = "";
@@ -267,10 +338,10 @@
         function renderSidebarChannels() {
             const sidebar = document.getElementById('recommendedSidebar');
             if(!sidebar) return;
-            sidebar.innerHTML = STREAMS.slice(0, 6).map(s => `
+            sidebar.innerHTML = STREAMS.slice(0, 7).map(s => `
                 <div class="flex items-center gap-3 cursor-pointer group hover:bg-white/5 p-1 rounded-lg transition-colors" onclick="openPlayer('${s.id}')">
                     <div class="relative shrink-0">
-                        <img src="${s.avatar}" class="w-8 h-8 rounded-lg object-cover">
+                        <img src="${s.avatar}" class="w-8 h-8 rounded-lg object-cover ring-1 ring-white/10">
                         <div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-red-600 border-2 border-[#0a0a0c] rounded-full"></div>
                     </div>
                     <div class="flex-1 sidebar-text overflow-hidden">
@@ -305,7 +376,7 @@
             if(!grid) return;
             const filtered = STREAMS.filter(s => {
                 const matchesSearch = s.title.toLowerCase().includes(currentSearch.toLowerCase()) || s.channel.toLowerCase().includes(currentSearch.toLowerCase());
-                const matchesCategory = activeCategory === "All" || s.category === activeCategory;
+                const matchesCategory = activeCategory === "All" || s.category === activeCategory || (activeCategory === "Desi Memes" && s.category === "Memes");
                 return matchesSearch && matchesCategory;
             });
 
@@ -323,7 +394,7 @@
                     <div class="flex gap-3 md:gap-4 px-1">
                         <img src="${s.avatar}" class="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl mt-1 flex-shrink-0 ring-2 ring-white/5 object-cover" />
                         <div class="flex flex-col overflow-hidden">
-                            <h3 class="text-white font-bold leading-tight line-clamp-2 text-sm md:text-[15px] group-hover:text-cyan-400 transition-colors">${s.title}</h3>
+                            <h3 class="text-white font-bold leading-tight line-clamp-2 text-sm md:text-[15px] group-hover:text-cyan-400 transition-colors uppercase">${s.title}</h3>
                             <div class="flex items-center gap-1 mt-1.5">
                                 <span class="text-gray-400 font-bold text-[10px] md:text-xs uppercase tracking-wider truncate">${s.channel}</span>
                                 <i data-lucide="check-circle-2" size="12" class="text-cyan-400 shrink-0"></i>
@@ -368,7 +439,7 @@
                 chatBox.appendChild(div);
                 chatBox.scrollTop = chatBox.scrollHeight;
                 if(chatBox.childNodes.length > 50) chatBox.removeChild(chatBox.firstChild);
-            }, 2000);
+            }, 1500);
 
             lucide.createIcons();
             if(window.innerWidth < 1280) toggleSidebar(true);
@@ -401,25 +472,33 @@
 
         // --- CORE INITIALIZATION ---
         window.onload = () => {
-            // 1. Initial Render (Don't wait for auth)
             renderCategories();
             renderVideos();
             renderSidebarChannels();
             lucide.createIcons();
 
-            // 2. Safe Firebase Init
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                const mainApp = document.getElementById('mainAppContent');
+                splash.style.opacity = '0';
+                splash.style.visibility = 'hidden';
+                mainApp.classList.add('visible');
+            }, 2800);
+
+            // Safe Firebase Init & User Display
             try {
                 if (typeof __firebase_config !== 'undefined') {
                     const firebaseConfig = JSON.parse(__firebase_config);
                     const app = initializeApp(firebaseConfig);
                     const auth = getAuth(app);
-                    const db = getFirestore(app);
-
                     signInAnonymously(auth).catch(() => {});
                     onAuthStateChanged(auth, (user) => {
                         if (user) {
                             const avatarEl = document.getElementById('userAvatar');
-                            if(avatarEl) avatarEl.innerText = user.uid.substring(0, 1).toUpperCase();
+                            const nameEl = document.getElementById('userNameDisplay');
+                            // Initial placeholder "ID" updated to initials if user logged in
+                            if(avatarEl) avatarEl.innerText = "II"; 
+                            if(nameEl) nameEl.innerText = "Indian_Idiot_" + user.uid.substring(0, 4).toUpperCase();
                         }
                     });
                 }
@@ -428,7 +507,6 @@
             }
         };
 
-        // Event Listeners
         document.getElementById('menuBtn').onclick = () => toggleSidebar();
         document.getElementById('searchInput').oninput = (e) => {
             currentSearch = e.target.value;
