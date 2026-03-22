@@ -244,16 +244,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'peace-out-v1';
-
-        let currentUser = null;
-        let activeCategory = "All";
-        let currentSearch = "";
-
+        // Constants
         const STREAMS = [
             { id: '1', title: "TRYING THE WORLD'S SPICIEST CHIP (HARDCORE CHALLENGE)", channel: "RiskTaker", viewers: "45.2K", category: "Hardcore", thumbnail: "https://images.unsplash.com/photo-1544436076-41967e7fb901?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=risk" },
             { id: '2', title: "IRL WALKING THROUGH TOKYO AT 3AM 🇯🇵", channel: "NeonWalker", viewers: "12.8K", category: "IRL", thumbnail: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=neon" },
@@ -264,27 +255,15 @@
             { id: '7', title: "ELON MUSK MEME REVIEW", channel: "StarshipPoster", viewers: "150K", category: "Memes", thumbnail: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=elon" },
             { id: '8', title: "SKATEBOARDING DOWN MT. EVEREST (WILD)", channel: "ExtremeX", viewers: "112K", category: "Hardcore", thumbnail: "https://images.unsplash.com/photo-1520116467521-812fb2f74b17?w=800&q=80", avatar: "https://i.pravatar.cc/150?u=ext" },
         ];
-
         const CATEGORIES = ["All", "Live", "Memes", "IRL", "Hardcore", "Challenges", "Music", "Creative"];
-
         const CHAT_USERS = ["HyperCool", "StreamSniper", "LUL_Guy", "PeaceMaker", "GamerGirl99", "ZenMaster"];
         const CHAT_MSGS = ["POGGERS", "Actually insane haha", "LUL", "RIP for the chip", "Is this real??", "Peace out vibes!", "Love from Berlin!"];
 
-        window.onload = async () => {
-            await signInAnonymously(auth);
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    currentUser = user;
-                    const avatarEl = document.getElementById('userAvatar');
-                    if(avatarEl) avatarEl.innerText = user.uid.substring(0, 1).toUpperCase();
-                }
-            });
-            renderCategories();
-            renderVideos();
-            renderSidebarChannels();
-            lucide.createIcons();
-        };
+        let activeCategory = "All";
+        let currentSearch = "";
+        let chatInterval;
 
+        // UI Functions
         function renderSidebarChannels() {
             const sidebar = document.getElementById('recommendedSidebar');
             if(!sidebar) return;
@@ -359,7 +338,6 @@
             lucide.createIcons();
         }
 
-        let chatInterval;
         window.openPlayer = (id) => {
             const stream = STREAMS.find(s => s.id === id);
             if (!stream) return;
@@ -374,7 +352,6 @@
             document.getElementById('playerChannel').innerText = stream.channel;
             document.getElementById('playerViewers').innerText = stream.viewers;
 
-            // Clear and start mock chat
             const chatBox = document.getElementById('chatContainer');
             chatBox.innerHTML = '';
             clearInterval(chatInterval);
@@ -394,11 +371,7 @@
             }, 2000);
 
             lucide.createIcons();
-            
-            // Auto-collapse sidebar on smaller player views
-            if(window.innerWidth < 1280) {
-               toggleSidebar(true);
-            }
+            if(window.innerWidth < 1280) toggleSidebar(true);
         };
 
         window.showHome = () => {
@@ -413,14 +386,10 @@
         function toggleSidebar(forceCollapse = false) {
             const sidebar = document.getElementById('sidebar');
             const texts = document.querySelectorAll('.sidebar-text');
-            
-            // On Mobile
             if(window.innerWidth < 640) {
                 sidebar.classList.toggle('mobile-hidden');
                 return;
             }
-
-            // On Desktop
             if (forceCollapse || sidebar.classList.contains('w-64')) {
                 sidebar.classList.replace('w-64', 'w-20');
                 texts.forEach(t => t.classList.add('hidden'));
@@ -430,15 +399,41 @@
             }
         }
 
-        // UI Listeners
-        document.getElementById('menuBtn').onclick = () => toggleSidebar();
+        // --- CORE INITIALIZATION ---
+        window.onload = () => {
+            // 1. Initial Render (Don't wait for auth)
+            renderCategories();
+            renderVideos();
+            renderSidebarChannels();
+            lucide.createIcons();
 
+            // 2. Safe Firebase Init
+            try {
+                if (typeof __firebase_config !== 'undefined') {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    const auth = getAuth(app);
+                    const db = getFirestore(app);
+
+                    signInAnonymously(auth).catch(() => {});
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            const avatarEl = document.getElementById('userAvatar');
+                            if(avatarEl) avatarEl.innerText = user.uid.substring(0, 1).toUpperCase();
+                        }
+                    });
+                }
+            } catch (e) {
+                console.warn("Cloud connection limited, offline mode active.");
+            }
+        };
+
+        // Event Listeners
+        document.getElementById('menuBtn').onclick = () => toggleSidebar();
         document.getElementById('searchInput').oninput = (e) => {
             currentSearch = e.target.value;
             renderVideos();
         };
-
-        // Window Resize Logic
         window.onresize = () => {
             const sidebar = document.getElementById('sidebar');
             if(window.innerWidth < 1024 && sidebar.classList.contains('w-64')) {
